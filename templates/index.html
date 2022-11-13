@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <meta charset = "utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title> Simple Kanban Board</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
+        <script src="http://code.jquery.com/jquery-1.10.2.js"></script>  
+        <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>  
+        <link href="http://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel="stylesheet">  
+        <script>
+            $(function() {
+                $(".taskList").disableSelection();
+                $(".taskList").sortable({
+                    tolerance: "fit",
+                    containment: ".row",
+                    revert: "invalid",
+                    cursor: "grab",
+                    connectWith: ".taskList",
+                    receive: function(event, ui) {
+                        console.log(ui.item)
+                        $.post("{{url_for('updates')}}", {"id": ui.item.attr("id"), "level": $(this).parent().attr("id")});
+                    }
+                });
+                $(".deleteTask").click(function () {
+                    $.post("{{url_for('updates')}}", {"id": $(this).parent().attr("id"), "level": ""});
+                    $(this).parent().remove()
+                });
+            })
+        </script>
+        <style>
+            ul {
+                list-style-type: none;
+            }
+            ul div { 
+                margin-left: -20px;
+                margin-bottom: 10px;
+            }
+        </style>
+    </head>
+    <body>
+    <div class="logout">
+        <a href="{{url_for('logout')}}"><strong>Log Out</strong></a>
+    </div>
+        <legend><h1><strong> Kanban Board</strong></h1></legend>
+        <div class="row">
+            <div class="column" style="background-color: #FFD700" id = "todo">
+                <h2>To-dos</h2>
+                <ul class = "taskList" style = "height: 100px;">
+                    {% for task in tasks_todo %}
+                    <div id = {{task.id}}>
+                        <li> {{task['TaskName']}} </li>
+                        <button type="button" class = "deleteTask"><strong>Delete</strong></button>
+                    </div>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="column" style="background-color:#FFFF00" id = "in-progress">
+                <h2>In-Progress</h2>
+                <ul class = "taskList" style = "height: 100px;">
+                    {% for task in tasks_in_progress %}
+                    <div id = {{task.id}}>
+                        <li> {{ task['TaskName'] }} </li>
+                        <button type="button" class = "deleteTask"><strong>Delete</strong></button>
+                    </div>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="column" style="background-color:#FFE4B5" id = "done">
+                <h2>Done</h2>
+                <ul class = "taskList" style = "height: 100px;">
+                    {% for task in tasks_done %}
+                    <div id = {{task.id}}>
+                        <li> {{task['TaskName']}} </li>
+                        <button type="button" class = "deleteTask"><strong>Delete</strong></button>
+                    </div>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    <form action="{{url_for('add')}}" method="POST">
+    <div class="submit">
+        <button type="submit"><strong>SUBMIT</strong></button>
+        <input type="text" id="TaskName" name="TaskName"/>
+    </div>
+    </form>
+    </body>
+</html>
